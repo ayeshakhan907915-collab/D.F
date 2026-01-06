@@ -1,43 +1,50 @@
 module.exports.config = {
     name: "antirobbery",
     eventType: ["log:thread-admins"],
-    version: "1.0.0",
+    version: "2.0.0",
     credits: "FAIZ ANSARI",
-    description: "THIS BOT WAS MADE BY MR FAIZ ANSARI",
+    description: "Anti admin robbery protection"
 };
 
-module.exports.run = async function ({ event, api, Threads, Users }) {
-    const { logMessageType, logMessageData, senderID } = event;
-         let data = (await Threads.getData(event.threadID)).data
-         if (data.guard == false) return;
-    if (data.guard == true ) {
-        switch (logMessageType) {
-          case "log:thread-admins": {
-            if (logMessageData.ADMIN_EVENT == "add_admin") {
-              if(event.author == api.getCurrentUserID()) return
-              if(logMessageData.TARGET_ID == api.getCurrentUserID()) return
-              else {
-                api.changeAdminStatus(event.threadID, event.author, false, editAdminsCallback)
-                api.changeAdminStatus(event.threadID, logMessageData.TARGET_ID, false)
-                function editAdminsCallback(err) {
-                  if (err) return api.sendMessage("😛😛😛😛", event.threadID, event.messageID);
-                    return api.sendMessage(`एंटीरॉबरी ऐक्टिव हो गया बॉस 😐✌️`, event.threadID, event.messageID);
-                }
-              }
-            }
-            else if (logMessageData.ADMIN_EVENT == "remove_admin") {
-              if(event.author == api.getCurrentUserID()) return
-              if(logMessageData.TARGET_ID == api.getCurrentUserID()) return
-              else {
-                api.changeAdminStatus(event.threadID, event.author, false, editAdminsCallback)
-                api.changeAdminStatus(event.threadID, logMessageData.TARGET_ID, true)
-                function editAdminsCallback(err) {
-                if (err) return api.sendMessage("😛😛😛😛", event.threadID, event.messageID);
-                return api.sendMessage(`एंटीरॉबरी ऐक्टिव हो गया बॉस 😐✌️`, event.threadID, event.messageID);
-              }
-            }
-          }
+module.exports.run = async function ({ event, api, Threads }) {
+    try {
+        const { logMessageType, logMessageData, threadID, author, messageID } = event;
+
+        if (logMessageType !== "log:thread-admins") return;
+
+        const threadData = (await Threads.getData(threadID)).data || {};
+        if (!threadData.guard) return;
+
+        const botID = api.getCurrentUserID();
+        const targetID = logMessageData.TARGET_ID;
+        const action = logMessageData.ADMIN_EVENT;
+
+        // Ignore bot actions
+        if (author === botID || targetID === botID) return;
+
+        const notify = () => {
+            api.sendMessage(
+                "🚫 एंटीरॉबरी एक्टिव है बॉस 😐✌️\nबिना परमिशन एडमिन छेड़छाड़ मना है!",
+                threadID,
+                messageID
+            );
+        };
+
+        // ADMIN ADDED (UNAUTHORIZED)
+        if (action === "add_admin") {
+            await api.changeAdminStatus(threadID, author, false);
+            await api.changeAdminStatus(threadID, targetID, false);
+            return notify();
         }
-      }
+
+        // ADMIN REMOVED (UNAUTHORIZED)
+        if (action === "remove_admin") {
+            await api.changeAdminStatus(threadID, author, false);
+            await api.changeAdminStatus(threadID, targetID, true);
+            return notify();
+        }
+
+    } catch (err) {
+        console.error("ANTI-ROBBERY ERROR:", err);
     }
-}
+};
