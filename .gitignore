@@ -1,12 +1,49 @@
-.replit.backup
+# ===============================
+# Node / NPM
+# ===============================
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# ===============================
+# Replit / Hosting
+# ===============================
 .replit
+.replit.backup
 .runner
 replit.nix
-.config
-node_modules
-Choru-Mirai
-config.json.temp
-LICENSE
-CONTRIBUTING.md
 Procfile
-README.md
+
+# ===============================
+# Config / Temp / Sensitive
+# ===============================
+config.json.temp
+.env
+.env.*
+
+# ===============================
+# OS / Editor
+# ===============================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ===============================
+# Build / Cache
+# ===============================
+.cache/
+dist/
+build/
+
+# ===============================
+# Custom / Project Specific
+# ===============================
+Choru-Mirai/
+.config/
+
+# ===============================
+# Logs
+# ===============================
+logs/
+*.log
