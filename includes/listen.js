@@ -1,40 +1,152 @@
 module.exports = function ({ api, models }) {
     const fs = require("fs");
-    const Users = require("./controllers/users")({ models, api }),
-        Threads = require("./controllers/threads")({ models, api }),
-        Currencies = require("./controllers/currencies")({ models });
+    const path = require("path");
+    const Users = require("./controllers/users")({ models, api });
+    const Threads = require("./controllers/threads")({ models, api });
+    const Currencies = require("./controllers/currencies")({ models });
     const logger = require("../utils/log.js");
-    const moment = require('moment-timezone');
+    const moment = require("moment-timezone");
     const axios = require("axios");
-    var day = moment.tz("Asia/Kolkata").day();
 
+    let currentDay = moment.tz("Asia/Kolkata").day();
+    const checkttDataPath = path.join(__dirname, "../models/commands/checktuongtac");
 
-    const checkttDataPath = __dirname + '/../models/commands/checktuongtac/';
+    /* ================= DAILY / WEEKLY TOP ================= */
+
     setInterval(async () => {
-        const day_now = moment.tz("Asia/Kolkata").day();
-        const _ADMINIDs = [...global.config.NDH, ...global.config.ADMINBOT];
-      try {
-        if (day != day_now) {
-            day = day_now;
-            const checkttData = fs.readdirSync(checkttDataPath).filter(file => {
-              const _ID = file.replace('.json', '');
-              return _ADMINIDs.includes(_ID) || global.data.allThreadID.includes(_ID);
-            });
-            console.log('Priyansh Rajput');
-            await new Promise(async resolve => {
-                for (const checkttFile of checkttData) {
-                    const checktt = JSON.parse(fs.readFileSync(checkttDataPath + checkttFile));
-                    let storage = [], count = 1;
-                    for (const item of checktt.day) {
-                        const userName = await Users.getNameUser(item.id) || 'Priyansh Rajput';
-                        const itemToPush = item;
-                        itemToPush.name = userName;
-                        storage.push(itemToPush);
-                    };
-                    storage.sort((a, b) => {
-                        if (a.count > b.count) {
-                            return -1;
-                        }
+        try {
+            const nowDay = moment.tz("Asia/Kolkata").day();
+            if (currentDay === nowDay) return;
+            currentDay = nowDay;
+
+            const ADMIN_IDS = [
+                ...(global.config.NDH || []),
+                ...(global.config.ADMINBOT || [])
+            ].map(String);
+
+            const files = fs.existsSync(checkttDataPath)
+                ? fs.readdirSync(checkttDataPath).filter(f => f.endsWith(".json"))
+                : [];
+
+            for (const file of files) {
+                const boxID = file.replace(".json", "");
+                if (
+                    !ADMIN_IDS.includes(boxID) &&
+                    !global.data.allThreadID.includes(boxID)
+                ) continue;
+
+                const filePath = path.join(checkttDataPath, file);
+                const data = JSON.parse(fs.readFileSync(filePath));
+
+                const buildTop = async (arr) => {
+                    const list = [];
+                    for (const u of arr) {
+                        list.push({
+                            ...u,
+                            name: await Users.getNameUser(u.id) || "Unknown"
+                        });
+                    }
+                    return list.sort(
+                        (a, b) => b.count - a.count || a.name.localeCompare(b.name)
+                    );
+                };
+
+                const dailyTop = await buildTop(data.day || []);
+                let msg = "== PRIYANSH RAJPUT ❤️ ==\n\n";
+                dailyTop.slice(0, 10).forEach((u, i) => {
+                    msg += `${i + 1}. ${u.name} → ${u.count} messages\n`;
+                });
+
+                api.sendMessage(msg, boxID);
+                data.day.forEach(u => (u.count = 0));
+
+                /* WEEKLY RESET (MONDAY) */
+                if (nowDay === 1 && Array.isArray(data.week)) {
+                    const weekTop = await buildTop(data.week);
+                    let wMsg = "== WEEKLY TOP ❤️ ==\n\n";
+                    weekTop.slice(0, 10).forEach((u, i) => {
+                        wMsg += `${i + 1}. ${u.name} → ${u.count} messages\n`;
+                    });
+                    api.sendMessage(wMsg, boxID);
+                    data.week.forEach(u => (u.count = 0));
+                }
+
+                data.time = nowDay;
+                fs.writeFileSync(filePath, JSON.stringify(data, null, 4));
+            }
+        } catch (e) {
+            console.error("TOP ERROR:", e);
+        }
+    }, 60 * 1000);
+
+    /* ================= LOAD DATABASE ================= */
+
+    (async () => {
+        try {
+            logger("Loading environment...", "[ BOT ]");
+
+            const threads = await Threads.getAll();
+            const users = await Users.getAll(["userID", "name", "data"]);
+            const currencies = await Currencies.getAll(["userID"]);
+
+            for (const t of threads) {
+                const id = String(t.threadID);
+                global.data.allThreadID.push(id);
+                global.data.threadData.set(id, t.data || {});
+                global.data.threadInfo.set(id, t.threadInfo || {});
+            }
+
+            for (const u of users) {
+                const id = String(u.userID);
+                global.data.allUserID.push(id);
+                if (u.name) global.data.userName.set(id, u.name);
+            }
+
+            currencies.forEach(c =>
+                global.data.allCurrenciesID.push(String(c.userID))
+            );
+
+            logger("Environment loaded successfully", "[ BOT ]");
+        } catch (err) {
+            logger("Load failed", "error");
+            console.error(err);
+        }
+    })();
+
+    /* ================= HANDLERS ================= */
+
+    const handleCommand = require("./handle/handleCommand")({ api, models, Users, Threads, Currencies });
+    const handleReply = require("./handle/handleReply")({ api, models, Users, Threads, Currencies });
+    const handleEvent = require("./handle/handleEvent")({ api, models, Users, Threads, Currencies });
+    const handleReaction = require("./handle/handleReaction")({ api, models, Users, Threads, Currencies });
+    const handleCreateDatabase = require("./handle/handleCreateDatabase")({ api, Threads, Users, Currencies, models });
+
+    /* ================= RETURN LISTENER ================= */
+
+    return (event) => {
+        try {
+            switch (event.type) {
+                case "message":
+                case "message_reply":
+                case "message_unsend":
+                    handleCreateDatabase({ event });
+                    handleCommand({ event });
+                    handleReply({ event });
+                    break;
+
+                case "event":
+                    handleEvent({ event });
+                    break;
+
+                case "message_reaction":
+                    handleReaction({ event });
+                    break;
+            }
+        } catch (e) {
+            console.error("EVENT ERROR:", e);
+        }
+    };
+};                        }
                         else if (a.count < b.count) {
                             return 1;
                         } else {
