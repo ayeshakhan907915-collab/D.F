@@ -1,26 +1,48 @@
-module.exports = function({ sequelize, Sequelize }) {
-	let Currencies = sequelize.define('Currencies', {
-		num: {
-			type: Sequelize.INTEGER,
-			primaryKey: true,
-			autoIncrement: true
-		},
-		userID: {
-			type: Sequelize.BIGINT,
-			unique: true
-		},
-		money: {
-			type: Sequelize.BIGINT,
-			defaultValue: 0
-		},
-        exp: {
-            type: Sequelize.BIGINT,
-            defaultValue: 0
-        },
-		data: {
-			type: Sequelize.JSON
-		}
-	});
+module.exports = function ({ sequelize, Sequelize }) {
+  const Currencies = sequelize.define(
+    "Currencies",
+    {
+      num: {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+      },
 
-	return Currencies;
-}
+      userID: {
+        type: Sequelize.BIGINT,
+        allowNull: false,
+        unique: true
+      },
+
+      money: {
+        type: Sequelize.BIGINT,
+        allowNull: false,
+        defaultValue: 0,
+        validate: {
+          min: 0
+        }
+      },
+
+      exp: {
+        type: Sequelize.BIGINT,
+        allowNull: false,
+        defaultValue: 0,
+        validate: {
+          min: 0
+        }
+      },
+
+      data: {
+        type: Sequelize.JSON,
+        allowNull: true,
+        defaultValue: {}
+      }
+    },
+    {
+      tableName: "currencies",
+      timestamps: true
+    }
+  );
+
+  return Currencies;
+};
