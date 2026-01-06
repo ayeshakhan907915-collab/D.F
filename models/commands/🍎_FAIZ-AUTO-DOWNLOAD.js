@@ -1,47 +1,66 @@
 module.exports = {
   config: {
     name: "linkAutoDownload",
-    version: "1.3.0",
+    version: "1.5.0",
     hasPermssion: 0,
     credits: "FAIZ ANSARI",
-    description:
-      "Automatically detects links in messages and downloads the file.",
+    description: "Auto detect video links and download",
     commandCategory: "Utilities",
     usages: "",
-    cooldowns: 5,
+    cooldowns: 8,
   },
-  run: async function ({ events, args }) {},
-  handleEvent: async function ({ api, event, args }) {
+
+  run: async function () {},
+
+  handleEvent: async function ({ api, event }) {
     const axios = require("axios");
-    const request = require("request");
     const fs = require("fs-extra");
-    const content = event.body ? event.body : "";
-    const body = content.toLowerCase();
+    const path = require("path");
     const { alldown } = require("nayan-media-downloader");
-    if (body.startsWith("https://")) {
-      api.setMessageReaction("📿", event.messageID, (err) => {}, true);
-      const data = await alldown(content);
-      console.log(data);
-      const { low, high, title } = data.data;
-      api.setMessageReaction("❤️‍🩹", event.messageID, (err) => {}, true);
-      const video = (
-        await axios.get(high, {
-          responseType: "arraybuffer",
-        })
-      ).data;
-      fs.writeFileSync(
-        __dirname + "/cache/auto.mp4",
-        Buffer.from(video, "utf-8")
-      );
+
+    try {
+      if (!event.body) return;
+
+      const text = event.body.trim();
+
+      // sirf link se start ho tabhi chale
+      if (!/^https?:\/\//i.test(text)) return;
+
+      api.setMessageReaction("⏳", event.messageID, () => {}, true);
+
+      const result = await alldown(text).catch(() => null);
+      if (!result || !result.data || !result.data.high) {
+        return api.setMessageReaction("❌", event.messageID, () => {}, true);
+      }
+
+      const { high, title } = result.data;
+
+      const cachePath = path.join(__dirname, "cache");
+      const filePath = path.join(cachePath, `auto_${Date.now()}.mp4`);
+
+      await fs.ensureDir(cachePath);
+
+      const video = await axios.get(high, {
+        responseType: "arraybuffer",
+        timeout: 60000,
+      });
+
+      await fs.writeFile(filePath, video.data);
+
+      api.setMessageReaction("✅", event.messageID, () => {}, true);
 
       return api.sendMessage(
         {
-          body: `⋆✦⋆⎯⎯⎯⎯⎯⎯⎯⎯⋆✦⋆\n\nᴛɪᴛʟᴇ: ${title}\n\n⋆✦⋆⎯⎯⎯⎯⎯⎯⎯⎯⋆✦⋆`,
-          attachment: fs.createReadStream(__dirname + "/cache/auto.mp4"),
+          body: `🎬 𝗧𝗜𝗧𝗟𝗘:\n${title || "Unknown"}`,
+          attachment: fs.createReadStream(filePath),
         },
         event.threadID,
+        () => fs.unlink(filePath),
         event.messageID
       );
+    } catch (e) {
+      console.error("[AutoDownload]", e);
+      api.setMessageReaction("⚠️", event.messageID, () => {}, true);
     }
   },
 };
