@@ -1,88 +1,81 @@
 module.exports.config = {
-  name: "leave",
-  eventType: ["log:unsubscribe"],
-  version: "1.1.0",
-  credits: "FAIZ ANSARI",
-  description: "Notify when someone leaves the group with a random GIF",
-  dependencies: {
-    "fs-extra": "",
-    "axios": "",
-    "path": "",
-    "moment-timezone": ""
-  }
+    name: "leave",
+    eventType: ["log:unsubscribe"],
+    version: "2.0.0",
+    credits: "FAIZ ANSARI",
+    description: "Notify when someone leaves the group with a random GIF"
 };
 
-module.exports.run = async function({ api, event, Users }) {
-  const axios = require('axios');
-  const moment = require("moment-timezone");
-  const { createWriteStream, existsSync, mkdirSync } = global.nodemodule["fs-extra"];
-  const { join } = global.nodemodule["path"];
-  const { threadID } = event;
+module.exports.run = async function ({ api, event, Users }) {
+    try {
+        const axios = require("axios");
+        const fs = require("fs-extra");
+        const path = require("path");
+        const moment = require("moment-timezone");
 
-  if (event.logMessageData.leftParticipantFbId == api.getCurrentUserID()) return;
+        const { threadID, author, logMessageData } = event;
+        const leftID = logMessageData.leftParticipantFbId;
+        const botID = api.getCurrentUserID();
 
-  const name = await Users.getNameUser(event.logMessageData.leftParticipantFbId) || "उपयोगकर्ता";
-  const type = (event.author == event.logMessageData.leftParticipantFbId) ? "खुद ही भाग गया😐👈" : "एडमिन ने गुस्से में निकाल दिया।😑👈";
+        // Ignore bot leave
+        if (leftID === botID) return;
 
-  // Time-Based Session
-  const hours = moment.tz("Asia/Kolkata").format("HH");
-  const date = moment.tz("Asia/Kolkata").format("DD/MM/YYYY");
-  const time = moment.tz("Asia/Kolkata").format("HH:mm:ss");
-  let session;
+        const name =
+            (await Users.getNameUser(leftID)) ||
+            global.data.userName.get(leftID) ||
+            "उपयोगकर्ता";
 
-  if (hours >= 5 && hours < 12) {
-    session = "सुबह";
-  } else if (hours >= 12 && hours < 17) {
-    session = "दोपहर";
-  } else if (hours >= 17 && hours < 21) {
-    session = "शाम";
-  } else {
-    session = "रात";
-  }
+        const reason =
+            author === leftID
+                ? "खुद ही भाग गया 😐👈"
+                : "एडमिन ने गुस्से में निकाल दिया 😑👈";
 
-  const path = join(__dirname, "cache", "leaveGif");
-  if (!existsSync(path)) mkdirSync(path, { recursive: true });
+        /* ===== TIME SESSION ===== */
+        const hour = Number(moment.tz("Asia/Kolkata").format("HH"));
+        let session =
+            hour >= 5 && hour < 12 ? "सुबह" :
+            hour >= 12 && hour < 17 ? "दोपहर" :
+            hour >= 17 && hour < 21 ? "शाम" : "रात";
 
-  // Imgur GIF Links
-  const gifLinks = [
-    "https://i.imgur.com/aESbSZy.gif",
-    "https://i.imgur.com/Yr0K0q0.gif",
-    "https://i.imgur.com/MpBXhBb.gif",
-    "https://i.imgur.com/lvzGoe5.gif"
-  ];
+        /* ===== MESSAGE ===== */
+        const msg =
+`╭•┄┅═══❁🌺❁═══┅┄•╮
+   😏  GOODBYE  😏
+╰•┄┅═══❁🌺❁═══┅┄•╯
 
-  const randomGif = gifLinks[Math.floor(Math.random() * gifLinks.length)];
-  const gifPath = join(__dirname, "cache", "leaveGif", `${threadID}.gif`);
+${session} की विदाई 😄✌️
+नाम 𒁍 ${name}
+रीजन 𒁍 ${reason}
 
-  // Message format with time-based session
-  let msg = `╭•┄┅═══❁🌺❁═══┅┄•╮\n  😏   𝗚𝗢𝗢𝗗𝗕𝗬𝗘  😏\n╰•┄┅═══❁🌺❁═══┅┄•╯\n\n सुकर है एक ठरकी इस ग्रुप में कम हो गया 😃✌️\nउसका नाम है 𒁍 ${name} \nरीजन 𒁍 ${type}\n╭•┄┅═════════════════❁🌺\nCREATER BY MR FAIZ ANSARI ♥️`;
+CREATED BY MR FAIZ ANSARI ♥️`;
 
-  try {
-    // Download the GIF from Imgur
-    const response = await axios({
-      url: randomGif,
-      method: 'GET',
-      responseType: 'stream'
-    });
+        /* ===== GIF HANDLING ===== */
+        const gifLinks = [
+            "https://i.imgur.com/aESbSZy.gif",
+            "https://i.imgur.com/Yr0K0q0.gif",
+            "https://i.imgur.com/MpBXhBb.gif",
+            "https://i.imgur.com/lvzGoe5.gif"
+        ];
 
-    // Save the GIF to the file system
-    const writer = createWriteStream(gifPath);
-    response.data.pipe(writer);
+        const gifURL = gifLinks[Math.floor(Math.random() * gifLinks.length)];
+        const cacheDir = path.join(__dirname, "cache");
+        if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
 
-    // Wait for the GIF to finish downloading
-    writer.on('finish', () => {
-      // Send the GIF with the message
-      api.sendMessage({
-        body: msg,
-        attachment: require("fs").createReadStream(gifPath)
-      }, threadID);
-    });
+        const gifPath = path.join(cacheDir, `leave_${Date.now()}.gif`);
+        const res = await axios.get(gifURL, { responseType: "arraybuffer" });
+        fs.writeFileSync(gifPath, res.data);
 
-    writer.on('error', () => {
-      api.sendMessage("GIF भेजने में समस्या आई।", threadID);
-    });
+        api.sendMessage(
+            {
+                body: msg,
+                attachment: fs.createReadStream(gifPath)
+            },
+            threadID,
+            () => fs.unlinkSync(gifPath)
+        );
 
-  } catch (error) {
-    api.sendMessage("कुछ गड़बड़ हो गई। GIF भेजने में असमर्थ।", threadID);
-  }
+    } catch (err) {
+        console.error("LEAVE EVENT ERROR:", err);
+        api.sendMessage("⚠️ Leave notification भेजने में दिक्कत आई।", event.threadID);
+    }
 };
