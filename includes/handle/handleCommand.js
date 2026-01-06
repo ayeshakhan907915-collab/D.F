@@ -1,40 +1,206 @@
 module.exports = function ({ api, models, Users, Threads, Currencies }) {
-  const stringSimilarity = require('string-similarity'),
-    escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-    logger = require("../../utils/log.js");
-  const axios = require('axios')
+  const stringSimilarity = require("string-similarity");
+  const logger = require("../../utils/log.js");
   const moment = require("moment-timezone");
+
+  const escapeRegex = (str) =>
+    str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
   return async function ({ event }) {
-    const dateNow = Date.now()
-    const time = moment.tz("Asia/Kolkata").format("HH:MM:ss DD/MM/YYYY");
-    const { allowInbox, PREFIX, ADMINBOT, NDH, DeveloperMode, adminOnly, keyAdminOnly, ndhOnly,adminPaOnly } = global.config;
-    const { userBanned, threadBanned, threadInfo, threadData, commandBanned } = global.data;
+    if (!event || !event.body) return;
+
+    const dateNow = Date.now();
+    const time = moment.tz("Asia/Kolkata").format("HH:mm:ss DD/MM/YYYY");
+
+    const {
+      PREFIX,
+      ADMINBOT,
+      NDH,
+      DeveloperMode
+    } = global.config;
+
+    const {
+      userBanned,
+      threadBanned,
+      threadInfo,
+      threadData,
+      commandBanned
+    } = global.data;
+
     const { commands, cooldowns } = global.client;
-    var { body, senderID, threadID, messageID } = event;
-    var senderID = String(senderID),
-      threadID = String(threadID);
-    const threadSetting = threadData.get(threadID) || {}
-    const prefixRegex = new RegExp(`^(<@!?${senderID}>|${escapeRegex((threadSetting.hasOwnProperty("PREFIX")) ? threadSetting.PREFIX : PREFIX)})\\s*`);
+
+    let { body, senderID, threadID, messageID } = event;
+    senderID = String(senderID);
+    threadID = String(threadID);
+
+    /* ===== PREFIX CHECK ===== */
+    const threadSetting = threadData.get(threadID) || {};
+    const prefix = threadSetting.PREFIX || PREFIX;
+
+    const prefixRegex = new RegExp(
+      `^(<@!?${senderID}>|${escapeRegex(prefix)})\\s*`
+    );
     if (!prefixRegex.test(body)) return;
-    const adminbot = require('./../../config.json');
-//// admin -pa /////
-    if(!global.data.allThreadID.includes(threadID) && !ADMINBOT.includes(senderID) && adminbot.adminPaOnly == true)
-    return api.sendMessage("MODE » Only admins can use bots in their own inbox", threadID, messageID)
-    ////end 
-    if (!ADMINBOT.includes(senderID) && adminbot.adminOnly == true) {
-      if (!ADMINBOT.includes(senderID) && adminbot.adminOnly == true) return api.sendMessage('MODE » Only admins can use bots', threadID, messageID)
+
+    /* ===== BAN CHECK ===== */
+    if (!ADMINBOT.includes(senderID)) {
+      if (userBanned.has(senderID)) {
+        const { reason, dateAdded } = userBanned.get(senderID) || {};
+        return api.sendMessage(
+          global.getText("handleCommand", "userBanned", reason, dateAdded),
+          threadID,
+          messageID
+        );
+      }
+
+      if (threadBanned.has(threadID)) {
+        const { reason, dateAdded } = threadBanned.get(threadID) || {};
+        return api.sendMessage(
+          global.getText("handleCommand", "threadBanned", reason, dateAdded),
+          threadID,
+          messageID
+        );
+      }
     }
-    if (!NDH.includes(senderID) && !ADMINBOT.includes(senderID) && adminbot.ndhOnly == true) {
-      if (!NDH.includes(senderID) && !ADMINBOT.includes(senderID) && adminbot.ndhOnly == true) return api.sendMessage('MODE » Only bot support can use bots', threadID, messageID)
+
+    /* ===== PARSE COMMAND ===== */
+    const [matchedPrefix] = body.match(prefixRegex);
+    const args = body.slice(matchedPrefix.length).trim().split(/\s+/);
+    const commandName = args.shift().toLowerCase();
+
+    let command = commands.get(commandName);
+
+    if (!command) {
+      const listCmd = [...commands.keys()];
+      const checker = stringSimilarity.findBestMatch(commandName, listCmd);
+      if (checker.bestMatch.rating >= 0.5)
+        command = commands.get(checker.bestMatch.target);
+      else
+        return api.sendMessage(
+          global.getText("handleCommand", "commandNotExist"),
+          threadID,
+          messageID
+        );
     }
-    const dataAdbox = require('../../models/commands/cache/data.json');
-    var threadInf = (threadInfo.get(threadID) || await Threads.getInfo(threadID));
-    const findd = threadInf.adminIDs.find(el => el.id == senderID);
-    if (dataAdbox.adminbox.hasOwnProperty(threadID) && dataAdbox.adminbox[threadID] == true && !ADMINBOT.includes(senderID) && !findd && event.isGroup == true) return api.sendMessage('MODE » Only admins can use bots', event.threadID, event.messageID)
-    if (userBanned.has(senderID) || threadBanned.has(threadID) || allowInbox == ![] && senderID == threadID) {
-      if (!ADMINBOT.includes(senderID.toString())) {
-        if (userBanned.has(senderID)) {
-          const { reason, dateAdded } = userBanned.get(senderID) || {};
+
+    /* ===== COMMAND BAN ===== */
+    if (!ADMINBOT.includes(senderID)) {
+      const banT = commandBanned.get(threadID) || [];
+      const banU = commandBanned.get(senderID) || [];
+
+      if (banT.includes(command.config.name))
+        return api.sendMessage(
+          global.getText(
+            "handleCommand",
+            "commandThreadBanned",
+            command.config.name
+          ),
+          threadID,
+          messageID
+        );
+
+      if (banU.includes(command.config.name))
+        return api.sendMessage(
+          global.getText(
+            "handleCommand",
+            "commandUserBanned",
+            command.config.name
+          ),
+          threadID,
+          messageID
+        );
+    }
+
+    /* ===== PERMISSION ===== */
+    let permssion = 0;
+    const info =
+      threadInfo.get(threadID) || (await Threads.getInfo(threadID));
+    const isAdmin = info?.adminIDs?.some(e => e.id == senderID);
+
+    if (NDH.includes(senderID)) permssion = 2;
+    if (ADMINBOT.includes(senderID)) permssion = 3;
+    else if (isAdmin) permssion = 1;
+
+    if (command.config.hasPermssion > permssion)
+      return api.sendMessage(
+        global.getText("handleCommand", "permssionNotEnough"),
+        threadID,
+        messageID
+      );
+
+    /* ===== COOLDOWN ===== */
+    if (!cooldowns.has(command.config.name))
+      cooldowns.set(command.config.name, new Map());
+
+    const timestamps = cooldowns.get(command.config.name);
+    const cooldownTime = (command.config.cooldowns || 1) * 1000;
+
+    if (
+      timestamps.has(senderID) &&
+      dateNow < timestamps.get(senderID) + cooldownTime
+    ) {
+      const left =
+        (timestamps.get(senderID) + cooldownTime - dateNow) / 1000;
+      return api.sendMessage(
+        `⏳ Wait ${left.toFixed(1)}s before using this command again`,
+        threadID,
+        messageID
+      );
+    }
+
+    /* ===== LANGUAGE ===== */
+    let getText2 = () => "";
+    if (command.languages?.[global.config.language]) {
+      getText2 = (...v) => {
+        let txt =
+          command.languages[global.config.language][v[0]] || "";
+        v.forEach((x, i) => {
+          txt = txt.replace(new RegExp(`%${i}`, "g"), x);
+        });
+        return txt;
+      };
+    }
+
+    /* ===== RUN ===== */
+    try {
+      await command.run({
+        api,
+        event,
+        args,
+        models,
+        Users,
+        Threads,
+        Currencies,
+        permssion,
+        getText: getText2
+      });
+
+      timestamps.set(senderID, dateNow);
+
+      if (DeveloperMode === true) {
+        logger(
+          global.getText(
+            "handleCommand",
+            "executeCommand",
+            time,
+            commandName,
+            senderID,
+            threadID,
+            args.join(" "),
+            Date.now() - dateNow
+          )
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      return api.sendMessage(
+        global.getText("handleCommand", "commandError", commandName, err),
+        threadID,
+        messageID
+      );
+    }
+  };
+};          const { reason, dateAdded } = userBanned.get(senderID) || {};
           return api.sendMessage(global.getText("handleCommand", "userBanned", reason, dateAdded), threadID, async (err, info) => {
             await new Promise(resolve => setTimeout(resolve, 5 * 1000));
             return api.unsendMessage(info.messageID);
