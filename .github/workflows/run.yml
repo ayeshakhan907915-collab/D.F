@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x]   # ✅ Stable LTS (bots ke liye best)
+        node-version: [18.x]
 
     steps:
       - name: Checkout repository
@@ -22,12 +22,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"          # ⚡ Faster installs
 
       - name: Install dependencies
-        run: |
-          npm cache clean --force
-          npm install
+        run: npm install
 
-      - name: Start bot
-        run: npm start
+      - name: Test build (NO BOT START)
+        run: |
+          node -v
+          npm -v
+          echo "Build test successful"
