@@ -1,40 +1,89 @@
 module.exports = function ({ Users, Threads, Currencies }) {
-    const logger =require("../../utils/log.js");
+    const logger = require("../../utils/log.js");
+
     return async function ({ event }) {
-        const { allUserID, allCurrenciesID, allThreadID, userName, threadInfo } = global.data; 
+        const { allUserID, allCurrenciesID, allThreadID, userName, threadInfo } = global.data;
         const { autoCreateDB } = global.config;
-        if (autoCreateDB == ![]) return;
-        var { senderID, threadID } = event;
+
+        // Auto DB creation disabled
+        if (!autoCreateDB) return;
+
+        let { senderID, threadID } = event;
         senderID = String(senderID);
-        var threadID = String(threadID);
+        threadID = String(threadID);
+
         try {
-            if (!allThreadID.includes(threadID) && event.isGroup == !![]) {
+            /* ================= THREAD CREATE ================= */
+            if (!allThreadID.includes(threadID) && event.isGroup === true) {
                 const threadIn4 = await Threads.getInfo(threadID);
-                const setting = {};
-                setting.threadName = threadIn4.threadName
-                setting.adminIDs = threadIn4.adminIDs
-                setting.nicknames = threadIn4.nicknames;
-                const dataThread = setting;
-                allThreadID.push(threadID)
+
+                const dataThread = {
+                    threadName: threadIn4.threadName,
+                    adminIDs: threadIn4.adminIDs,
+                    nicknames: threadIn4.nicknames
+                };
+
+                allThreadID.push(threadID);
                 threadInfo.set(threadID, dataThread);
-                const setting2 = {};
-                setting2.threadInfo = dataThread
-                setting2.data = {}
-                await Threads.setData(threadID, setting2);
-                for (singleData of threadIn4.userInfo) {
-                    userName.set(String(singleData.id), singleData.name);
-                    try {
-                        global.data.allUserID.includes(String(singleData.id)) ? (await Users.setData(String(singleData.id), 
-                        {
-                            'name': singleData.name
-                        }), 
-                        global.data.allUserID.push(singleData.id)) : (await Users.createData(singleData.id, 
-                        {
-                            'name': singleData.name,
-                            'data': {}
-                        }), 
-                        global.data.allUserID.push(String(singleData.id)), 
-                        logger(global.getText('handleCreateDatabase', 'newUser', singleData.id), '[ DATABASE ]'));
+
+                await Threads.setData(threadID, {
+                    threadInfo: dataThread,
+                    data: {}
+                });
+
+                // Create users from group
+                for (const singleData of threadIn4.userInfo) {
+                    const uid = String(singleData.id);
+                    userName.set(uid, singleData.name);
+
+                    if (!allUserID.includes(uid)) {
+                        await Users.createData(uid, {
+                            name: singleData.name,
+                            data: {}
+                        });
+                        allUserID.push(uid);
+                        logger(
+                            global.getText('handleCreateDatabase', 'newUser', uid),
+                            '[ DATABASE ]'
+                        );
+                    }
+                }
+
+                logger(
+                    global.getText('handleCreateDatabase', 'newThread', threadID),
+                    '[ DATABASE ]'
+                );
+            }
+
+            /* ================= USER CREATE ================= */
+            if (!allUserID.includes(senderID)) {
+                const infoUsers = await Users.getInfo(senderID);
+
+                await Users.createData(senderID, {
+                    name: infoUsers.name,
+                    data: {}
+                });
+
+                allUserID.push(senderID);
+                userName.set(senderID, infoUsers.name);
+
+                logger(
+                    global.getText('handleCreateDatabase', 'newUser', senderID),
+                    '[ DATABASE ]'
+                );
+            }
+
+            /* ================= CURRENCY CREATE ================= */
+            if (!allCurrenciesID.includes(senderID)) {
+                await Currencies.createData(senderID, { data: {} });
+                allCurrenciesID.push(senderID);
+            }
+
+        } catch (err) {
+            console.error("[ HANDLE CREATE DB ERROR ]", err);
+        }
+    };
+};                        logger(global.getText('handleCreateDatabase', 'newUser', singleData.id), '[ DATABASE ]'));
                     } catch(e) { console.log(e) };
                 }
                 logger(global.getText('handleCreateDatabase', 'newThread', threadID), '[ DATABASE ]');
