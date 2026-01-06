@@ -2,40 +2,55 @@ const Sequelize = require("sequelize");
 const { resolve } = require("path");
 const { DATABASE } = global.config;
 
-var dialect = Object.keys(DATABASE), storage;
-dialect = dialect[0]; 
-storage = resolve(__dirname, `../${DATABASE[dialect].storage}`);
+// Detect dialect
+let dialect = Object.keys(DATABASE)[0];
+let storage = null;
 
-module.exports.sequelize = new Sequelize({
-  dialect,
-  storage,
-  pool: {
-    max: 20,
-    min: 0,
-    acquire: 60000,
-    idle: 20000
-  },
-  retry: {
-    match: [
-      /SQLITE_BUSY/,
-    ],
-    name: 'query',
-    max: 20
-  },
-  logging: false,
-  transactionType: 'IMMEDIATE',
-  define: {
-    underscored: false,
-    freezeTableName: true,
-    charset: 'utf8',
-    dialectOptions: {
-      collate: 'utf8_general_ci'
+// SQLite support
+if (dialect === "sqlite") {
+  storage = resolve(__dirname, `../${DATABASE.sqlite.storage}`);
+}
+
+const sequelize = new Sequelize(
+  DATABASE[dialect].database || null,
+  DATABASE[dialect].username || null,
+  DATABASE[dialect].password || null,
+  {
+    dialect,
+    storage,
+
+    host: DATABASE[dialect].host || "localhost",
+    port: DATABASE[dialect].port || undefined,
+
+    pool: {
+      max: 20,
+      min: 0,
+      acquire: 60000,
+      idle: 20000
     },
-    timestamps: true
-  },
-  sync: {
-    force: false
-  }
-});
 
-module.exports.Sequelize = Sequelize;
+    retry: {
+      match: [/SQLITE_BUSY/],
+      max: 20
+    },
+
+    logging: false,
+
+    define: {
+      underscored: false,
+      freezeTableName: true,
+      timestamps: true
+    }
+  }
+);
+
+// Auto sync safely
+sequelize
+  .sync({ alter: false })
+  .then(() => console.log("✅ Database synced"))
+  .catch(err => console.error("❌ Database sync failed:", err));
+
+module.exports = {
+  sequelize,
+  Sequelize
+};
