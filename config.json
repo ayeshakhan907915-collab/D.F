@@ -10,7 +10,7 @@
   "notiGroup": true,
   "allowInbox": false,
 
-  "BOTNAME": "SHIVA ❤🪽",
+  "BOTNAME": "SHIVA",
   "PREFIX": "#",
 
   "ADMINBOT": ["100082052205053"],
@@ -25,11 +25,11 @@
 
   "DATABASE": {
     "sqlite": {
-      "storage": "data.sqlite"
+      "storage": "includes/data.sqlite"
     }
   },
 
-  "APPSTATEPATH": "FAIZ-BABU.json",
+  "APPSTATEPATH": "appstate.json",
 
   "FCAOption": {
     "forceLogin": true,
