@@ -1,9 +1,7 @@
 const { spawn } = require("child_process");
-const axios = require("axios");
 const logger = require("./utils/log");
 
-// ================= WEBSITE / UPTIME SERVER =================
-
+// ===== UPTIME SERVER =====
 const express = require("express");
 const path = require("path");
 
@@ -15,59 +13,41 @@ app.get("/", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  logger(`Server running on port ${PORT}`, "[ STARTING ]");
+  logger(`Server running on port ${PORT}`, "START");
 });
 
-// ================= BOT START & RESTART LOGIC =================
-
-global.countRestart = 0;
+// ===== BOT RESTART SYSTEM =====
+let restartCount = 0;
 const MAX_RESTART = 5;
 
-function startBot(message) {
-  if (message) logger(message, "[ BOT ]");
+function startBot(msg) {
+  if (msg) logger(msg, "BOT");
 
-  const child = spawn(
-    "node",
-    ["--trace-warnings", "--async-stack-traces", "FAIZ-BABU.js"],
-    {
-      cwd: __dirname,
-      stdio: "inherit",
-      shell: true
+  const bot = spawn("node", ["FAIZ-BABU.js"], {
+    stdio: "inherit",
+    shell: true,
+  });
+
+  bot.on("close", (code) => {
+    if (code === 0) {
+      logger("Bot stopped normally", "BOT");
+      process.exit(0);
     }
-  );
 
-  child.on("close", (code) => {
-    if (code !== 0 && global.countRestart < MAX_RESTART) {
-      global.countRestart++;
-      logger(
-        `Bot crashed! Restarting (${global.countRestart}/${MAX_RESTART})`,
-        "[ RESTART ]"
-      );
-      startBot();
-    } else if (global.countRestart >= MAX_RESTART) {
-      logger("Max restart limit reached. Bot stopped.", "[ STOP ]");
+    restartCount++;
+    logger(`Bot crashed | code: ${code}`, "ERROR");
+
+    if (restartCount < MAX_RESTART) {
+      setTimeout(() => startBot("Restarting bot..."), 3000);
+    } else {
+      logger("Max restart limit reached", "STOP");
+      process.exit(1);
     }
   });
 
-  child.on("error", (err) => {
-    logger("Spawn error: " + err.message, "[ ERROR ]");
+  bot.on("error", (err) => {
+    logger(err.message, "ERROR");
   });
 }
 
-// ================= GITHUB UPDATE CHECK =================
-
-axios
-  .get("https://raw.githubusercontent.com/priyanshu192/bot/main/package.json")
-  .then((res) => {
-    if (!res.data) return;
-    logger(res.data.name || "Unknown", "[ NAME ]");
-    logger("Version: " + res.data.version, "[ VERSION ]");
-    logger(res.data.description || "", "[ DESCRIPTION ]");
-  })
-  .catch(() => {
-    logger("Unable to check updates (offline)", "[ INFO ]");
-  });
-
-// ================= START BOT =================
-
-startBot("Starting FAIZ-BABU bot...");
+startBot("Bot starting...");
