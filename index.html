@@ -6,6 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       background: #000;
@@ -18,9 +22,12 @@
 
     .container {
       position: relative;
-      width: 90%;
-      max-width: 800px;
+      width: 95%;
+      max-width: 900px;
       aspect-ratio: 16 / 9;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 25px rgba(255, 0, 255, 0.5);
     }
 
     iframe {
@@ -29,25 +36,45 @@
       border: none;
     }
 
+    .status {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(0,0,0,0.7);
+      padding: 6px 12px;
+      border-radius: 20px;
+      color: #00ff6a;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
     .ad {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      padding: 10px;
-      background: rgba(0, 0, 0, 0.6);
+      padding: 12px;
+      background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
       color: #fff;
       text-align: center;
       font-size: 14px;
-      animation: slideUp 4s ease-in-out infinite alternate;
+      font-weight: bold;
+      animation: slideUp 3s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    .ad span {
+      color: #ff00ff;
     }
 
     @keyframes slideUp {
       from {
         transform: translateY(100%);
+        opacity: 0;
       }
       to {
         transform: translateY(0);
+        opacity: 1;
       }
     }
   </style>
@@ -56,14 +83,16 @@
 <body>
   <div class="container">
     <iframe
-      src="https://www.youtube.com/embed/e39EAppDd6o"
+      src="https://www.youtube.com/embed/e39EAppDd6o?autoplay=1&mute=1&controls=1&rel=0&modestbranding=1"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowfullscreen>
     </iframe>
 
+    <div class="status">🟢 BOT ONLINE</div>
+
     <div class="ad">
-      🔔 Subscribe to my channel <b>MirryKal</b>
+      🔔 Subscribe to my channel <span>MirryKal</span>
     </div>
   </div>
 </body>
-	</html>
+</html>
