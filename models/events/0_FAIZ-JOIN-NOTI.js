@@ -1,65 +1,109 @@
 module.exports.config = {
-        name: "joinNoti",
-        eventType: ["log:subscribe"],
-        version: "1.0.1",
-        credits: "FAIZ BABU",
-        description: "Notify bots or people entering the group",
-        dependencies: {
-            "fs-extra": ""
-        }
+    name: "joinNoti",
+    eventType: ["log:subscribe"],
+    version: "2.0.0",
+    credits: "FAIZ BABU",
+    description: "Notify when members or bot join group"
 };
-module.exports.run = async function({ api, event }) {
 
-        const request = require("request");
+module.exports.run = async function ({ api, event }) {
+    try {
+        const fs = require("fs-extra");
+        const axios = require("axios");
+        const path = require("path");
+
         const { threadID } = event;
-        if (event.logMessageData.addedParticipants.some(i => i.userFbId == api.getCurrentUserID())) {
-                api.changeNickname(`【 ${global.config.PREFIX} 】 ${global.config.BOTNAME}`, threadID, api.getCurrentUserID());
-                return api.sendMessage(`╭•┄┅═══❁🌺❁═══┅┄•╮\n  💐  FAIZ BABU  💐\n╰•┄┅═══❁🌺❁═══┅┄•╯\n\n✧═══❁🌺𝗪𝗘𝗟𝗖𝗢𝗠𝗘🌺❁═══✧\nलो में आ गया आपका फैज बाबू जल्दी से स्वागत करो हमारा 😀\n╭•┄┅═════════════════❁🌺\n\nऔर जल्दी से मेरे बॉस फैज बाबू को रिक्वेस्ट भेज दो 😌\n╭•┄┅═════════════════❁🌺\n\nMY BOSS 𒁍 MR FAIZ BABU 🌺\n╭•┄┅═════════════════❁🌺\n\nFACEBOOK ID LINK 🔗 𒁍https://www.facebook.com/profile.php?id=100024727231584\n╭•┄┅═════════════════❁🌺\n\nMY PREFIX 𒁍【 ${global.config.PREFIX} 】\n╭•┄┅═════════════════❁🌺\n\nTHANKYOU FOR USING MR FAIZ BABU BOT`, threadID);
+        const botID = api.getCurrentUserID();
+
+        /* ===== BOT JOIN ===== */
+        if (event.logMessageData.addedParticipants.some(p => p.userFbId == botID)) {
+            await api.changeNickname(
+                `【 ${global.config.PREFIX} 】 ${global.config.BOTNAME}`,
+                threadID,
+                botID
+            );
+
+            return api.sendMessage(
+`╭•┄┅═══❁🌺❁═══┅┄•╮
+   💐  FAIZ BABU  💐
+╰•┄┅═══❁🌺❁═══┅┄•╯
+
+✧═══❁🌺 WELCOME 🌺❁═══✧
+लो बॉस आ गया आपका FAIZ BABU 😄✌️
+
+➤ PREFIX : 【 ${global.config.PREFIX} 】
+➤ OWNER : MR FAIZ BABU 🌺
+
+THANK YOU FOR USING BOT ❤️`,
+                threadID
+            );
         }
-        else {
-                try {
-    const request = require("request");
-                        const fs = global.nodemodule["fs-extra"];
-                        let { threadName, participantIDs } = await api.getThreadInfo(threadID);
 
-                        const threadData = global.data.threadData.get(parseInt(threadID)) || {};
+        /* ===== MEMBER JOIN ===== */
+        const { threadName, participantIDs } = await api.getThreadInfo(threadID);
+        const threadData = global.data.threadData.get(threadID) || {};
 
-                        var mentions = [], nameArray = [], memLength = [], i = 0;
+        const gifLinks = [
+            "https://i.imgur.com/Rl6Py22.gif",
+            "https://i.imgur.com/WpOudX3.gif",
+            "https://i.imgur.com/DuoVYZi.gif",
+            "https://i.imgur.com/3M3lYay.gif"
+        ];
 
-    let addedParticipants1 = event.logMessageData.addedParticipants;
-        for (let newParticipant of addedParticipants1) {
-   let userID = newParticipant.userFbId
-api.getUserInfo(parseInt(userID), (err, data) => {
-      if(err){ return console.log(err)}
-     var obj = Object.keys(data);
-    var userName = data[obj].name.replace("@", "");             if (userID !== api.getCurrentUserID()) {  
+        const membersAdded = event.logMessageData.addedParticipants;
+        const names = [];
+        const mentions = [];
 
-                                nameArray.push(userName);
-                                mentions.push({ tag: userName, id: userID, fromIndex: 0 });
+        for (const p of membersAdded) {
+            if (p.userFbId == botID) continue;
 
-                                memLength.push(participantIDs.length - i++);
-memLength.sort((a, b) => a - b);
+            const info = await api.getUserInfo(p.userFbId);
+            const name = info[p.userFbId].name.replace("@", "");
 
-                        (typeof threadData.customJoin == "undefined") ? msg = "╭•┄┅═══❁🌺❁═══┅┄•╮\n  💐   FAIZ-ANSARI  💐\n╰•┄┅═══❁🌺❁═══┅┄•╯\n\n✧══ ❁𝗪𝗘𝗟𝗖𝗢𝗠𝗘❁ ══✧\nHELLO 𒁍 {uName}\nMEMBER TO 𒁍 {soThanhVien}th\nGROUP NAME 𒁍 {threadName}\n╭•┄┅═════════════════❁🌺\n𝐌𝐘 𝐁𝐎𝐒𝐒 𒁍 𝐅𝐀𝐈𝐙 𝐀𝐍𝐒𝐀𝐑𝐈 ♥️🙂\n╭•┄┅═════════════════❁🌺\n\nआप इस ग्रुप के {soThanhVien}th मेंबर हो......." : msg = threadData.customJoin;
-                        msg = msg
-                        .replace(/\{uName}/g, nameArray.join(', '))
-                        .replace(/\{type}/g, (memLength.length > 1) ?  'you' : 'Friend')
-                        .replace(/\{soThanhVien}/g, memLength.join(', '))
-                        .replace(/\{threadName}/g, threadName);                        
-
-      var link = [
-"https://i.imgur.com/Rl6Py22.gif",
-"https://i.imgur.com/WpOudX3.gif",
-"https://i.imgur.com/DuoVYZi.gif",
-"https://i.imgur.com/3M3lYay.gif",
-      ];
-                                var callback = () => api.sendMessage({ body: msg, attachment: fs.createReadStream(__dirname + "/cache/leiamnashJ.jpg"), mentions }, event.threadID, () => fs.unlinkSync(__dirname + "/cache/leiamnashJ.jpg"));
-    return request(encodeURI(link[Math.floor(Math.random() * link.length)])).pipe(fs.createWriteStream(__dirname + "/cache/leiamnashJ.jpg")).on("close", () => callback());       
-                  }
-})
+            names.push(name);
+            mentions.push({
+                tag: name,
+                id: p.userFbId
+            });
         }
-    }catch (err) {
-            return console.log("ERROR: "+err);
+
+        if (!names.length) return;
+
+        const memberCount = participantIDs.length;
+        let msg = threadData.customJoin || 
+`╭•┄┅═══❁🌺❁═══┅┄•╮
+  💐 FAIZ ANSARI 💐
+╰•┄┅═══❁🌺❁═══┅┄•╯
+
+✨ WELCOME ✨
+HELLO {uName} 👋
+YOU ARE {soThanhVien}th MEMBER
+
+GROUP : {threadName}
+`;
+
+        msg = msg
+            .replace(/{uName}/g, names.join(", "))
+            .replace(/{soThanhVien}/g, memberCount)
+            .replace(/{threadName}/g, threadName);
+
+        const imgPath = path.join(__dirname, "cache", "welcome.gif");
+        const gifURL = gifLinks[Math.floor(Math.random() * gifLinks.length)];
+
+        const res = await axios.get(gifURL, { responseType: "arraybuffer" });
+        fs.writeFileSync(imgPath, res.data);
+
+        api.sendMessage(
+            {
+                body: msg,
+                attachment: fs.createReadStream(imgPath),
+                mentions
+            },
+            threadID,
+            () => fs.unlinkSync(imgPath)
+        );
+
+    } catch (err) {
+        console.error("JOIN NOTI ERROR:", err);
     }
-        }
-                                                  } 
+};
