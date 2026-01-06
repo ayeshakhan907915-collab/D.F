@@ -1,117 +1,117 @@
-# If you want to move down the line, please use \n. e.g: Priyanshu\nPriyansh.
-# After changed, you have to restart the bot to use.
-# Put the # character at the beginning of each sentence if you don't want the code to run those lines. 
-# Thanks to https://www.facebook.com/duong.than.net for translate to English!
+# Use \n for new line
+# Restart bot after changes
+# Comment any line with # if you want to disable it
+# Translated & Fixed
 
-# Priyansh.js 
+# Priyansh.js
 
-priyansh.newVersionDetected=𝐘𝐨𝐮 𝐚𝐫𝐞 𝐮𝐬𝐢𝐧𝐠 𝐯𝐞𝐫𝐬𝐢𝐨𝐧 %1, 𝐭𝐡𝐞 𝐥𝐚𝐭𝐞𝐬𝐭 𝐯𝐞𝐫𝐬𝐢𝐨𝐧 𝐢𝐬 %2. 𝐏𝐥𝐞𝐚𝐬𝐞 𝐮𝐩𝐝𝐚𝐭𝐞 𝐭𝐨 𝐭𝐡𝐞 𝐥𝐚𝐭𝐞𝐬𝐭 𝐯𝐞𝐫𝐬𝐢𝐨𝐧 𝐨𝐟 𝐟𝐨𝐫 𝐛𝐞𝐭𝐭𝐞𝐫 𝐛𝐨𝐭 𝐩𝐞𝐫𝐟𝐨𝐫𝐦𝐚𝐧𝐜𝐞. 𝐅𝐨𝐫 𝐮𝐩𝐝𝐚𝐭𝐞 𝐭𝐲𝐩𝐞 𝐢𝐧 𝐜𝐨𝐧𝐬𝐨𝐥𝐞/𝐜𝐦𝐝: 𝐧𝐨𝐝𝐞 𝐮𝐩𝐝𝐚𝐭𝐞
+priyansh.newVersionDetected=𝐘𝐨𝐮 𝐚𝐫𝐞 𝐮𝐬𝐢𝐧𝐠 𝐯𝐞𝐫𝐬𝐢𝐨𝐧 %1, 𝐭𝐡𝐞 𝐥𝐚𝐭𝐞𝐬𝐭 𝐯𝐞𝐫𝐬𝐢𝐨𝐧 𝐢𝐬 %2. 𝐏𝐥𝐞𝐚𝐬𝐞 𝐮𝐩𝐝𝐚𝐭𝐞 𝐭𝐨 𝐭𝐡𝐞 𝐥𝐚𝐭𝐞𝐬𝐭 𝐯𝐞𝐫𝐬𝐢𝐨𝐧 𝐟𝐨𝐫 𝐛𝐞𝐭𝐭𝐞𝐫 𝐛𝐨𝐭 𝐩𝐞𝐫𝐟𝐨𝐫𝐦𝐚𝐧𝐜𝐞. 𝐓𝐲𝐩𝐞 𝐢𝐧 𝐜𝐨𝐧𝐬𝐨𝐥𝐞/𝐜𝐦𝐝: 𝐧𝐨𝐝𝐞 𝐮𝐩𝐝𝐚𝐭𝐞
 priyansh.errorFormat=Malformed module!
-priyansh.nameExist=Module's name is similar to another module!
-priyansh.notFoundLanguage=Module %1 don't support your language
-priyansh.notFoundPackage=Can't find package %1 support for module %2, installing...
+priyansh.nameExist=Module name already exists!
+priyansh.notFoundLanguage=Module %1 does not support your language
+priyansh.notFoundPackage=Can't find package %1 for module %2, installing...
 priyansh.cantInstallPackage=Can't install package %1 for module %2, error: %3
-priyansh.loadedPackage=Installed whole package successfully for module %1
+priyansh.loadedPackage=Installed package successfully for module %1
 priyansh.loadedConfig=Installed config successfully for module %1
-priyansh.cantLoadConfig=Can't install config of module %1, error: %2
-priyansh.cantOnload=Can't launch setup of module %1, error: %1
+priyansh.cantLoadConfig=Can't install config for module %1, error: %2
+priyansh.cantOnload=Can't run setup for module %1, error: %2
 priyansh.successLoadModule=Successfully installed module %1
 priyansh.failLoadModule=Can't install module %1, error: %2
-priyansh.finishLoadModule=Installed %1 module commands and %2 module events successfully 
-priyansh.foundPathAppstate=Found appstate file now logging in...
-priyansh.notFoundPathAppstate=Error can't find appstate file maybe file is malformed!
+priyansh.finishLoadModule=Installed %1 command modules and %2 event modules successfully
+priyansh.foundPathAppstate=Found appstate file, logging in...
+priyansh.notFoundPathAppstate=Appstate file not found or corrupted!
 priyansh.checkListGban=Checking global ban list...
-priyansh.banDevice=Your device have been banned from Priyanshproject, please contact to facebook https://fb.me/Priyanshu.Rajput.official to know more information or asking for unban key, if you already have unban key, please fill it below.
-priyansh.keyNotSameFormat=Wrong format, code must contain 6 number.
-priyansh.codeInputExpired=Your code is wrong or out of date.
-priyansh.unbanDeviceSuccess=Your device are unban now, please restart to use.
-priyansh.userBanned=You had been banned from Priyanshproject when %1 with reason: %2. Please contact to facebook https://fb.me/Priyanshu.Rajput.official to have more information!
-priyansh.finishCheckListGban=Checked global ban list
-priyansh.handleListenError=handleListene has occurred some unexpected errorr, error : %1
-priyansh.warningSourceCode=DETECTED THAT SOURCE CODE'S STRUCTURE HAD BEEN CHANGED , STOP NOW!
-priyansh.refreshListen=Refreshed handleListener...
+priyansh.banDevice=Your device has been banned from PriyanshProject.\nContact: https://fb.me/Priyanshu.Rajput.official\nIf you have an unban key, enter it below.
+priyansh.keyNotSameFormat=Invalid format! Code must be 6 digits.
+priyansh.codeInputExpired=Invalid or expired code.
+priyansh.unbanDeviceSuccess=Device unbanned successfully! Please restart the bot.
+priyansh.userBanned=You were banned on %1 for reason: %2.\nContact: https://fb.me/Priyanshu.Rajput.official
+priyansh.finishCheckListGban=Global ban list checked
+priyansh.handleListenError=handleListener encountered an unexpected error: %1
+priyansh.warningSourceCode=SOURCE CODE STRUCTURE MODIFIED! BOT STOPPED!
+priyansh.refreshListen=handleListener refreshed
 priyansh.successConnectDatabase=Connected to database successfully!
 priyansh.failConnectDatabase=Failed to connect to database, error: %1
 
 # includes/listen.js
 
-listen.startLoadEnvironment=Proceed to load the environment variable ...
-listen.loadedEnvironmentThread=Loaded thread environment variable successfully 
-listen.loadedEnvironmentUser=Loaded user environment variable successfully 
-listen.successLoadEnvironment=Loaded environment variable successfully 
-listen.failLoadEnvironment=Can't load environment variable, error: %1
+listen.startLoadEnvironment=Loading environment variables...
+listen.loadedEnvironmentThread=Thread environment loaded successfully
+listen.loadedEnvironmentUser=User environment loaded successfully
+listen.successLoadEnvironment=Environment loaded successfully
+listen.failLoadEnvironment=Failed to load environment, error: %1
 
 # includes/controller/currencies.js
 
-currencies.needObjectOrArray=Have to be an Array or an Object or maybe both
-currencies.needObject=Have to be an Object
-currencies.needNumber= Have to be an number
+currencies.needObjectOrArray=Input must be an Object or Array
+currencies.needObject=Input must be an Object
+currencies.needNumber=Input must be a Number
 
 # includes/controller/threads.js
 
-threads.needObjectOrArray=Have to be an Array or an Object or maybe both
-threads.needObject=Have to be an Object 
+threads.needObjectOrArray=Input must be an Object or Array
+threads.needObject=Input must be an Object
 
 # includes/controller/users.js
 
-users.needObjectOrArray=Have to be an Array or an Object or maybe both
-users.needObject=Have to be an Object
+users.needObjectOrArray=Input must be an Object or Array
+users.needObject=Input must be an Object
 
 # includes/handle/handleCommand.js
 
-handleCommand.userBanned=⛔️~Tu Banned Hai Re 🤭!~🚫\n%1\n%2\nContact B0T Owner Faiz 🖤 For Unban ⚠️
-handleCommand.threadBanned=⛔️Your Thread/Box/Group Has Been Banned!⛔️\n%1\n%2 Please Contact Owner Faiz For Unban ⚠️
-handleCommand.commandNotExist=सॉरी दोस्त एक कमांड नहीं है ♥️🙂 MR FAIZ ANSARI ♥️
-handleCommand.commandThreadBanned=Your thread is unable to use command "%1"
-handleCommand.commandUserBanned=You are unable to use command "%1"
-handleCommand.threadNotAllowNSFW=Your thread is not allowed to use NSFW commands
-handleCommand.cantGetInfoThread=Can't get your thread's info, error: %1
-handleCommand.permssionNotEnough=एडमिन को ही अनुमति है 😉♥️🙊 MR FAIZ ANSARI ♥️
-handleCommand.cantSetMessageReaction=Having some unexpected error at setMessageReaction, error: %1
-handleCommand.executeCommand=[ %1 ] Command used: %2 by user: %3 at thread: %4 | Args included: %5 | Processing time: %6ms
-handleCommand.commandError=Having some unexpected error when using command %1, error: %2
+handleCommand.userBanned=⛔️ Tu Banned Hai 🤭 🚫\n%1\n%2\nContact Bot Owner Faiz 🖤 For Unban ⚠️
+handleCommand.threadBanned=⛔️ Group Has Been Banned ⛔️\n%1\n%2\nContact Owner Faiz For Unban ⚠️
+handleCommand.commandNotExist=सॉरी दोस्त, यह कमांड मौजूद नहीं है 🙂♥️
+handleCommand.commandThreadBanned=This group cannot use command "%1"
+handleCommand.commandUserBanned=You cannot use command "%1"
+handleCommand.threadNotAllowNSFW=This group is not allowed to use NSFW commands
+handleCommand.cantGetInfoThread=Can't get thread info, error: %1
+handleCommand.permssionNotEnough=सिर्फ एडमिन को अनुमति है 😉♥️
+handleCommand.cantSetMessageReaction=Failed to set message reaction, error: %1
+handleCommand.executeCommand=[ %1 ] Command: %2 | User: %3 | Thread: %4 | Args: %5 | Time: %6ms
+handleCommand.commandError=Error while executing command %1, error: %2
 
 # includes/handle/handleCommandEvent.js
 
-handleCommandEvent.moduleError=Having some unexpected error when using command %1, error: %2
+handleCommandEvent.moduleError=Command %1 failed, error: %2
 
 # includes/handle/handleCreateDatabase.js
 
-handleCreateDatabase.newThread=new thread: %1
-handleCreateDatabase.newUser=new user %1
+handleCreateDatabase.newThread=New thread created: %1
+handleCreateDatabase.newUser=New user created: %1
 
 # includes/handle/handleEvent.js
 
-handleEvent.executeEvent=[ %1 ] Event was executed: %2 at thread: %3 | Processing time: %4ms
-handleEvent.eventError=Having some error when executing event %1, error: %12
+handleEvent.executeEvent=[ %1 ] Event: %2 | Thread: %3 | Time: %4ms
+handleEvent.eventError=Error while executing event %1, error: %2
 
 # includes/handle/handleReaction.js
 
-handleReaction.missingValue=Missing value to respond your problem
-handleReaction.executeError=Having some error when responding to your problem, error: %1
+handleReaction.missingValue=Missing required data
+handleReaction.executeError=Reaction handling error: %1
 
 # includes/handle/handleReply.js
 
-handleReply.missingValue=Missing value to respond your problem
-handleReply.executeError=Having some error when responding your problem, error: %1
+handleReply.missingValue=Missing required data
+handleReply.executeError=Reply handling error: %1
 
 # includes/handle/handleSchedule.js
 
-handleSchedule.exectuteError=Having some error when schedule at module %1, error: %2
+handleSchedule.executeError=Schedule error in module %1, error: %2
 
 # utils/index.js
 
-utils.throwError=ℹ️ [!] Ye Command Kaam Nahi Kar Raha Koi Dosra Try Karo, %1help %2 Use For More usage 😉 ℹ️
+utils.throwError=ℹ️ Ye command kaam nahi kar raha.\n%1help %2 use karo 🙂 ℹ️
 
 # updater.js
 
-updater.latestVersion=You are using the latest version
-updater.cantFindVersion=You are using an undefined version (%1), please check your package.json file again
-updater.newVersions=There are %1 new versions to update, starting to update...
-updater.updateSuccess=Update successfully%1
-updater.configChanged=The %1 has been changed, please check your config.json file again
-updater.installingPackages=Installing dependencies for bot...
-updater.installSuccess=Installed dependencies successfully, restart the bot to use the new version
-updater.backupSuccess=Successfully backed up changed files, see in the %1 folder
-updater.restartToApply=. Restart the bot to apply the new version
-updater.skipFile=There is a new version of the %1 file, but you have skipped this file during the update process with the comment %2 in this file
+updater.latestVersion=You are already using the latest version
+updater.cantFindVersion=Undefined version (%1), please check package.json
+updater.newVersions=%1 new updates found, starting update...
+updater.updateSuccess=Update completed successfully %1
+updater.configChanged=%1 has changed, please recheck config.json
+updater.installingPackages=Installing dependencies...
+updater.installSuccess=Dependencies installed successfully, restart bot
+updater.backupSuccess=Backup created successfully in folder: %1
+updater.restartToApply=Restart the bot to apply updates
+updater.skipFile=Update available for file %1 but skipped (%2)
