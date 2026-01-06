@@ -2,39 +2,73 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
     return function ({ event }) {
         const { handleReaction, commands } = global.client;
         const { messageID, threadID } = event;
-        if (handleReaction.length !== 0) {
-            const indexOfHandle = handleReaction.findIndex(e => e.messageID == messageID);
-            if (indexOfHandle < 0) return;
-            const indexOfMessage = handleReaction[indexOfHandle];
-            const handleNeedExec = commands.get(indexOfMessage.name);
 
-            if (!handleNeedExec) return api.sendMessage(global.getText('handleReaction', 'missingValue'), threadID, messageID);
-            try {
-                var getText2;
-                if (handleNeedExec.languages && typeof handleNeedExec.languages == 'object') 
-                	getText2 = (...value) => {
-                    const react = handleNeedExec.languages || {};
-                    if (!react.hasOwnProperty(global.config.language)) 
-                    	return api.sendMessage(global.getText('handleCommand', 'notFoundLanguage', handleNeedExec.config.name), threadID, messageID);
-                    var lang = handleNeedExec.languages[global.config.language][value[0]] || '';
-                    for (var i = value.length; i > 0x2 * -0xb7d + 0x2111 * 0x1 + -0xa17; i--) {
-                        const expReg = RegExp('%' + i, 'g');
-                        lang = lang.replace(expReg, value[i]);
+        if (!Array.isArray(handleReaction) || handleReaction.length === 0) return;
+
+        const index = handleReaction.findIndex(e => e.messageID === messageID);
+        if (index === -1) return;
+
+        const reactionData = handleReaction[index];
+        const command = commands.get(reactionData.name);
+
+        if (!command)
+            return api.sendMessage(
+                global.getText('handleReaction', 'missingValue'),
+                threadID,
+                messageID
+            );
+
+        try {
+            let getText = () => "";
+
+            if (command.languages && typeof command.languages === "object") {
+                getText = (...args) => {
+                    const langPack = command.languages[global.config.language];
+                    if (!langPack) {
+                        api.sendMessage(
+                            global.getText(
+                                'handleCommand',
+                                'notFoundLanguage',
+                                command.config.name
+                            ),
+                            threadID,
+                            messageID
+                        );
+                        return "";
                     }
-                    return lang;
+
+                    let text = langPack[args[0]] || "";
+                    for (let i = 1; i < args.length; i++) {
+                        text = text.replace(new RegExp(`%${i}`, "g"), args[i]);
+                    }
+                    return text;
                 };
-                else getText2 = () => {};
-                const Obj = {};
-                Obj.api= api 
-                Obj.event = event 
-                Obj.models = models
-                Obj.Users = Users
-                Obj.Threads = Threads
-                Obj.Currencies = Currencies
-                Obj.handleReaction = indexOfMessage
-                Obj.models= models 
-                Obj.getText = getText2
-                handleNeedExec.handleReaction(Obj);
+            }
+
+            command.handleReaction({
+                api,
+                event,
+                models,
+                Users,
+                Threads,
+                Currencies,
+                handleReaction: reactionData,
+                getText
+            });
+
+        } catch (error) {
+            api.sendMessage(
+                global.getText(
+                    'handleReaction',
+                    'executeError',
+                    error.message || String(error)
+                ),
+                threadID,
+                messageID
+            );
+        }
+    };
+};                handleNeedExec.handleReaction(Obj);
                 return;
             } catch (error) {
                 return api.sendMessage(global.getText('handleReaction', 'executeError', error), threadID, messageID);
